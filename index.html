@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sài Gòn Metropolis | Tầm Nhìn Thượng Lưu</title>
+    
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Typography: Be Vietnam Pro for superior Vietnamese support -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Added Be Vietnam Pro for superior Vietnamese diacritic support -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Syne:wght@400..800&family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Be+Vietnam+Pro:ital,wght@0,100;0,400;0,700;0,900;1,100;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --obsidian: #050505;
@@ -16,19 +21,57 @@
             --glass: rgba(255, 255, 255, 0.03);
         }
         
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             background-color: var(--obsidian);
             color: white;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            cursor: none;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
+            cursor: none;
         }
 
-        .font-syne { font-family: 'Syne', sans-serif; }
+        /* Typography Spacing Fixes for Vietnamese */
+        .vn-title {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            line-height: 1.25 !important;
+            letter-spacing: -0.02em;
+        }
+
         .font-be { font-family: 'Be Vietnam Pro', sans-serif; }
+
+        .italic-fix {
+            font-style: italic;
+            padding-right: 0.15em;
+        }
+
+        /* Custom Cursor */
+        #cursor-outer {
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--electric-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.15s ease-out, background-color 0.3s ease;
+        }
+
+        #cursor-inner {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background-color: var(--electric-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            transition: transform 0.05s linear;
+        }
 
         /* Grainy noise texture */
         .noise::before {
@@ -49,51 +92,404 @@
             color: transparent;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: var(--obsidian); }
-        ::-webkit-scrollbar-thumb { background: var(--electric-gold); }
-
         .kinetic-grid {
             background-image: radial-gradient(circle at 1px 1px, rgba(212, 175, 55, 0.05) 1px, transparent 0);
             background-size: 40px 40px;
         }
 
-        /* 
-           CRITICAL FIX FOR VIETNAMESE TYPOGRAPHY:
-           - Increased line-height to 1.3 to prevent diacritic clipping.
-           - Used Be Vietnam Pro which has properly aligned internal metrics for accents.
-           - Added padding to heading blocks to avoid 'slanted' italics hitting boundaries.
-        */
-        .vn-title {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            line-height: 1.25 !important;
-            padding-top: 0.15em;
-            padding-bottom: 0.15em;
-            letter-spacing: -0.02em;
+        /* Animations */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
-        /* Ensure italic characters don't get clipped on the right */
-        .italic-fix {
-            font-style: italic;
-            padding-right: 0.1em;
+        .animate-marquee {
+            display: flex;
+            width: fit-content;
+            animation: marquee 40s linear infinite;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--obsidian);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .loader-bar {
+            width: 200px;
+            height: 1px;
+            background: rgba(212, 175, 55, 0.2);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .loader-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--electric-gold);
+            animation: load 1.5s cubic-bezier(0.65, 0.05, 0.36, 1) forwards;
+        }
+
+        @keyframes load {
+            to { width: 100%; }
+        }
+
+        /* Mobile Menu */
+        #mobile-menu {
+            transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            transform: translateY(-100%);
+        }
+
+        #mobile-menu.open {
+            transform: translateY(0);
         }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "framer-motion": "https://esm.sh/framer-motion@^12.26.2",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "react/": "https://esm.sh/react@^19.2.3/"
-  }
-}
-</script>
 </head>
-<body>
-    <div id="root"></div>
-    <div class="noise"></div>
-    <script type="module" src="index.tsx"></script>
+<body class="noise">
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="loader-bar"><div class="loader-progress"></div></div>
+        <div class="font-be text-[10px] tracking-[0.5em] text-[#D4AF37] uppercase">Metropolis Saigon</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="cursor-outer"></div>
+    <div id="cursor-inner"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-end mix-blend-difference">
+        <div class="font-be text-2xl font-black tracking-tighter">
+            METRO<span class="text-[#D4AF37]">POLIS</span>
+        </div>
+        
+        <div class="hidden md:flex space-x-12 font-be text-[10px] uppercase tracking-[0.2em] font-bold">
+            <a href="#projects" class="hover:text-[#D4AF37] transition-colors">Dự Án</a>
+            <a href="#features" class="hover:text-[#D4AF37] transition-colors">Đầu Tư</a>
+            <a href="#contact" class="hover:text-[#D4AF37] transition-colors">Vị Trí</a>
+            <a href="#contact" class="hover:text-[#D4AF37] transition-colors text-[#D4AF37]">Liên Hệ</a>
+        </div>
+
+        <button id="menu-toggle" class="md:hidden text-white">
+            <i data-lucide="menu" size="32"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-[#050505] z-[49] p-8 flex flex-col justify-center space-y-8 md:hidden">
+        <button id="menu-close" class="absolute top-6 right-6">
+            <i data-lucide="x" size="40"></i>
+        </button>
+        <a href="#projects" class="text-4xl font-be font-black italic uppercase">Dự Án</a>
+        <a href="#features" class="text-4xl font-be font-black italic uppercase">Đầu Tư</a>
+        <a href="#contact" class="text-4xl font-be font-black italic uppercase">Vị Trí</a>
+        <a href="#contact" class="text-4xl font-be font-black italic uppercase text-[#D4AF37]">Kết Nối</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden kinetic-grid">
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <div class="mb-8 inline-flex items-center space-x-3 px-5 py-2 border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/5 backdrop-blur-sm reveal">
+                <span class="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
+                <span class="text-[#D4AF37] text-[10px] font-be font-bold tracking-[0.3em] uppercase">Thị Trường BĐS TP.HCM 2024</span>
+            </div>
+
+            <h1 class="vn-title text-[10vw] md:text-[12vw] font-black italic uppercase text-white mb-6 reveal" style="transition-delay: 0.1s">
+                SÀI GÒN <br />
+                <span class="text-stroke italic-fix">VÔ CỰC</span>
+            </h1>
+
+            <p class="max-w-2xl mx-auto text-white/50 text-base md:text-lg font-normal leading-loose mb-12 reveal" style="transition-delay: 0.2s">
+                Kiến tạo tương lai tại trung tâm kinh tế năng động bậc nhất Châu Á. Khám phá những tuyệt tác bất động sản mang tính biểu tượng tại trái tim HCMC.
+            </p>
+
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 reveal" style="transition-delay: 0.3s">
+                <button class="group relative px-12 py-5 bg-[#D4AF37] text-black font-be font-black uppercase tracking-widest flex items-center overflow-hidden transition-all transform hover:-translate-y-1">
+                    <span class="relative z-10">Sở Hữu Ngay</span>
+                    <i data-lucide="arrow-up-right" class="ml-2 relative z-10 w-5 h-5"></i>
+                </button>
+                <button class="px-12 py-5 border border-white/20 hover:border-white transition-colors font-be font-black uppercase tracking-widest text-xs">
+                    Xem Phim Dự Án
+                </button>
+            </div>
+        </div>
+
+        <!-- Background Kinetic Blobs -->
+        <div class="absolute top-1/4 -right-20 w-80 h-80 bg-[#D4AF37]/10 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-1/4 -left-20 w-96 h-96 bg-blue-500/10 blur-[150px] rounded-full"></div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="py-16 border-y border-white/5 overflow-hidden whitespace-nowrap bg-white/5">
+        <div class="animate-marquee font-be font-black italic uppercase text-white/10 text-4xl md:text-6xl">
+            <span class="px-10">Thu Thiem New City</span>
+            <span class="text-[#D4AF37] text-stroke px-10">District 1 Central</span>
+            <span class="px-10">Luxury Penthouses</span>
+            <span class="text-[#D4AF37] text-stroke px-10">Investment Grade</span>
+            <span class="px-10">Empire City</span>
+            <span class="text-[#D4AF37] text-stroke px-10">Metropole</span>
+            <!-- Repeat for loop -->
+            <span class="px-10">Thu Thiem New City</span>
+            <span class="text-[#D4AF37] text-stroke px-10">District 1 Central</span>
+            <span class="px-10">Luxury Penthouses</span>
+            <span class="text-[#D4AF37] text-stroke px-10">Investment Grade</span>
+            <span class="px-10">Empire City</span>
+            <span class="text-[#D4AF37] text-stroke px-10">Metropole</span>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section id="features" class="py-24 bg-[#050505] relative">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="p-10 border border-white/5 bg-white/[0.02] reveal" style="transition-delay: 0s">
+                    <i data-lucide="map-pin" class="text-[#D4AF37] mb-6 w-8 h-8"></i>
+                    <h3 class="text-white/40 text-[10px] font-be font-bold uppercase tracking-[0.2em] mb-4">Vị Trí Đắc Địa</h3>
+                    <p class="text-xl md:text-2xl font-be font-black italic">Quận 1 - Q2</p>
+                </div>
+                <div class="p-10 border border-white/5 bg-white/[0.02] reveal" style="transition-delay: 0.1s">
+                    <i data-lucide="trending-up" class="text-[#D4AF37] mb-6 w-8 h-8"></i>
+                    <h3 class="text-white/40 text-[10px] font-be font-bold uppercase tracking-[0.2em] mb-4">Tăng Trưởng</h3>
+                    <p class="text-xl md:text-2xl font-be font-black italic">12% / Năm</p>
+                </div>
+                <div class="p-10 border border-white/5 bg-white/[0.02] reveal" style="transition-delay: 0.2s">
+                    <i data-lucide="building-2" class="text-[#D4AF37] mb-6 w-8 h-8"></i>
+                    <h3 class="text-white/40 text-[10px] font-be font-bold uppercase tracking-[0.2em] mb-4">Tiêu Chuẩn</h3>
+                    <p class="text-xl md:text-2xl font-be font-black italic">6 Sao+</p>
+                </div>
+                <div class="p-10 border border-white/5 bg-white/[0.02] reveal" style="transition-delay: 0.3s">
+                    <i data-lucide="waves" class="text-[#D4AF37] mb-6 w-8 h-8"></i>
+                    <h3 class="text-white/40 text-[10px] font-be font-bold uppercase tracking-[0.2em] mb-4">Tầm Nhìn</h3>
+                    <p class="text-xl md:text-2xl font-be font-black italic">Hướng Sông</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Property Grid -->
+    <section id="projects" class="py-32 bg-[#050505]">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8 reveal">
+                <div class="max-w-3xl">
+                    <h2 class="vn-title text-5xl md:text-8xl font-black italic uppercase mb-4">
+                        BỘ SƯU TẬP <br />
+                        <span class="text-[#D4AF37] italic-fix">BIỂU TƯỢNG</span>
+                    </h2>
+                </div>
+                <p class="max-w-md text-white/50 text-right leading-loose font-light">
+                    Tuyển chọn những dự án tiêu biểu nhất, định hình phong cách sống thượng lưu tại trung tâm Sài Gòn sôi động.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-32">
+                <!-- Project 1 -->
+                <div class="group cursor-pointer reveal">
+                    <div class="relative aspect-[4/5] overflow-hidden mb-8">
+                        <img src="https://images.unsplash.com/photo-1541339905195-032873525081?auto=format&fit=crop&q=80&w=1200" alt="Empire City" class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000">
+                        <div class="absolute top-8 left-8">
+                            <span class="px-5 py-2 bg-black/90 backdrop-blur-xl text-[#D4AF37] text-[10px] font-be font-black uppercase tracking-[0.2em]">Căn hộ siêu sang</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-white/10 pb-8">
+                        <div class="pr-6">
+                            <h3 class="text-3xl font-be font-black italic mb-3 group-hover:text-[#D4AF37] transition-colors">Empire City Thu Thiem</h3>
+                            <div class="flex items-center text-white/40 space-x-3 text-xs uppercase font-bold tracking-widest">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-[#D4AF37]"></i>
+                                <span>Quận 2, TP.HCM</span>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-[#D4AF37] font-be font-black italic text-2xl">Từ $8,000/m²</p>
+                            <p class="text-[10px] text-white/30 uppercase tracking-[0.1em] mt-3 font-bold">Giá niêm yết</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="group cursor-pointer md:mt-48 reveal">
+                    <div class="relative aspect-[4/5] overflow-hidden mb-8">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200" alt="The Marq" class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000">
+                        <div class="absolute top-8 left-8">
+                            <span class="px-5 py-2 bg-black/90 backdrop-blur-xl text-[#D4AF37] text-[10px] font-be font-black uppercase tracking-[0.2em]">Penthouse</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-white/10 pb-8">
+                        <div class="pr-6">
+                            <h3 class="text-3xl font-be font-black italic mb-3 group-hover:text-[#D4AF37] transition-colors">The Marq District 1</h3>
+                            <div class="flex items-center text-white/40 space-x-3 text-xs uppercase font-bold tracking-widest">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-[#D4AF37]"></i>
+                                <span>Quận 1, TP.HCM</span>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-[#D4AF37] font-be font-black italic text-2xl">Từ $12,000/m²</p>
+                            <p class="text-[10px] text-white/30 uppercase tracking-[0.1em] mt-3 font-bold">Giá niêm yết</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="py-40 relative overflow-hidden bg-white text-black">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-32">
+                <div class="reveal">
+                    <h2 class="vn-title text-6xl md:text-9xl font-black italic uppercase tracking-tighter mb-16">
+                        KẾT NỐI <br />
+                        <span class="italic-fix">TẦM VÓC.</span>
+                    </h2>
+                    <div class="space-y-12">
+                        <div class="flex items-center space-x-8">
+                            <div class="w-20 h-20 rounded-full border border-black/10 flex items-center justify-center">
+                                <i data-lucide="phone" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-be font-bold uppercase tracking-[0.3em] text-black/30 mb-2">Hotline 24/7</p>
+                                <p class="text-2xl md:text-3xl font-be font-black">+84 901 234 567</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-8">
+                            <div class="w-20 h-20 rounded-full border border-black/10 flex items-center justify-center">
+                                <i data-lucide="globe" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-be font-bold uppercase tracking-[0.3em] text-black/30 mb-2">Trụ Sở</p>
+                                <p class="text-2xl md:text-3xl font-be font-black italic leading-tight">Bitexco Tower, Q1</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-black p-12 md:p-16 text-white relative shadow-2xl reveal" style="transition-delay: 0.2s">
+                    <p class="text-2xl font-be font-semibold italic mb-16 leading-relaxed">Để lại thông tin để nhận hồ sơ đầu tư chi tiết và lịch tham quan đặc quyền.</p>
+                    <form class="space-y-10" onsubmit="return false">
+                        <div class="border-b border-white/20 pb-6">
+                            <input type="text" placeholder="HỌ VÀ TÊN QUÝ KHÁCH" class="w-full bg-transparent border-none outline-none font-be text-xs font-bold tracking-[0.2em] placeholder:text-white/10 uppercase">
+                        </div>
+                        <div class="border-b border-white/20 pb-6">
+                            <input type="email" placeholder="ĐỊA CHỈ EMAIL" class="w-full bg-transparent border-none outline-none font-be text-xs font-bold tracking-[0.2em] placeholder:text-white/10 uppercase">
+                        </div>
+                        <button class="w-full py-8 bg-[#D4AF37] text-black font-be font-black uppercase tracking-[0.4em] text-xs hover:bg-white transition-all transform hover:-translate-y-1">GỬI YÊU CẦU NGAY</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-16 bg-[#050505] border-t border-white/5">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-12">
+            <div class="font-be text-2xl font-black italic tracking-tighter">
+                METRO<span class="text-[#D4AF37]">POLIS</span> <span class="text-white/20 font-light text-sm ml-4 uppercase tracking-[0.2em]">Estate © 2024</span>
+            </div>
+            <div class="flex flex-wrap justify-center gap-8 text-white/30 text-[10px] font-be font-bold uppercase tracking-[0.3em]">
+                <a href="#" class="hover:text-white">Chính sách bảo mật</a>
+                <a href="#" class="hover:text-white">Điều khoản dịch vụ</a>
+                <a href="#" class="hover:text-white">Liên hệ</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 800);
+                
+                // Trigger reveals once loader is gone
+                handleReveal();
+            }, 1800);
+        });
+
+        // Custom Cursor
+        const outer = document.getElementById('cursor-outer');
+        const inner = document.getElementById('cursor-inner');
+        
+        document.addEventListener('mousemove', (e) => {
+            const { clientX: x, clientY: y } = e;
+            outer.style.transform = `translate(${x - 16}px, ${y - 16}px)`;
+            inner.style.transform = `translate(${x - 3}px, ${y - 3}px)`;
+        });
+
+        // Cursor interactions
+        const interactables = document.querySelectorAll('button, a, .group');
+        interactables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                outer.style.transform += ' scale(2)';
+                outer.style.backgroundColor = 'rgba(212, 175, 55, 0.1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                outer.style.transform = outer.style.transform.replace(' scale(2)', '');
+                outer.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // Mobile Menu
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuToggle.addEventListener('click', () => mobileMenu.classList.add('open'));
+        menuClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        });
+
+        // Scroll Reveals
+        const handleReveal = () => {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const revealTop = reveal.getBoundingClientRect().top;
+                const revealPoint = 150;
+                
+                if (revealTop < windowHeight - revealPoint) {
+                    reveal.classList.add('active');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', handleReveal);
+
+        // Parallax Effect on Hero Title
+        const vnTitle = document.querySelector('.vn-title');
+        window.addEventListener('scroll', () => {
+            const speed = 0.5;
+            const yPos = -(window.pageYOffset * speed);
+            if (vnTitle) {
+                vnTitle.style.transform = `translateY(${yPos}px)`;
+            }
+        });
+    </script>
 </body>
 </html>
